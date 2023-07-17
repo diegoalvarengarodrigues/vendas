@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: jumarket-database
+      MYSQL_ROOT_PASSWORD: 123tqi
+    ports:
+      - "3306:3306"
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"

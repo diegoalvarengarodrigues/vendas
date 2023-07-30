@@ -1,12 +1,10 @@
 package market.ju.autoatendimento.service
 
-import market.ju.autoatendimento.dto.ProdutoDTO
-import market.ju.autoatendimento.entity.Categoria
+
 import market.ju.autoatendimento.entity.Produto
+import market.ju.autoatendimento.exceptions.NaoEncontradoException
 import market.ju.autoatendimento.repository.CategoriaRepository
 import market.ju.autoatendimento.repository.ProdutoRepository
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import org.springframework.stereotype.Service
 
 @Service
@@ -14,56 +12,52 @@ class ProdutoService (
     private val produtoRepository: ProdutoRepository,
     private val categoriaRepository: CategoriaRepository
 ){
-    fun adicionarProduto(produtoDTO: ProdutoDTO, categoriaId: Long): ProdutoDTO {
+    /*
+    fun criarProduto(produtoDTO: ProdutoDTO, categoriaId: Long): Produto {
         val categoria = categoriaRepository.findById(categoriaId).orElseThrow {
-            throw IllegalArgumentException("Categoria não encontrada")
+            throw NaoEncontradoException("Categoria não encontrada")
         }
         val produto = Produto(
-            id = produtoDTO.id,
             nome = produtoDTO.nome,
             unidadeDeMedida = produtoDTO.unidadeDeMedida,
             precoUnitario = produtoDTO.precoUnitario,
-            categoria = categoria
+            categoria = produtoDTO.categoria
         )
-        val produtoSalvo = produtoRepository.save(produto)
-        return ProdutoDTO(produtoSalvo.id, produtoSalvo.nome, produtoSalvo.precoUnitario, produtoSalvo.unidadeDeMedida, categoriaId)
-    }
-    fun listarProdutos(): List<ProdutoDTO> {
-        val produtos = produtoRepository.findAll()
-        return produtos.map { produto ->  ProdutoDTO(
-            id = produto.id,
-            nome = produto.nome,
-            precoUnitario = produto.precoUnitario,
-            unidadeDeMedida = produto.unidadeDeMedida,
-            categoriaId = produto.categoria?.id) }
-    }
-    fun buscarProdutoPorId(id: Long): ProdutoDTO? {
-        val produto = produtoRepository.findById(id).orElse(null)
-        return produto?.let {
-            ProdutoDTO(
-                id = it.id,
-                nome = it.nome,
-                precoUnitario = it.precoUnitario,
-                unidadeDeMedida = it.unidadeDeMedida,
-                categoriaId = it.categoria?.id
-            )
+        return produtoRepository.save(produto)
+
+    }*/
+    fun criarProduto(produto: Produto): Produto {
+        val existe: Boolean = this.categoriaRepository.existsById(produto.categoria.id!!)
+        if(existe) {
+            return this.produtoRepository.save(produto)
+        } else{
+            throw NaoEncontradoException("Categoria não encontrada")
         }
     }
-    fun atualizarProduto(produtoDTO: ProdutoDTO, categoriaId: Long) {
-        val categoria = categoriaRepository.findById(categoriaId).orElseThrow {
-            throw IllegalArgumentException("Categoria não encontrada")
+    fun listarProdutos(): List<Produto> {
+        return produtoRepository.findAll()
+    }
+
+    fun buscarProdutoPorNome(nome: String): List<Produto> {
+        return produtoRepository.findByNome(nome)
+    }
+    fun buscarProdutoPorId(id: Long): Produto {
+
+        return produtoRepository.findById(id).orElseThrow {NaoEncontradoException("Produto com Id $id não encontrado")}
+
+    }
+    fun editarProduto(produto: Produto): String {
+        val situacao: Int = this.produtoRepository.editarProduto(produto.id!!, produto.nome, produto.unidadeDeMedida, produto.precoUnitario, produto.categoria.id!!)
+        if (situacao == 1) {
+            return "O produto de ID: ${produto.id} foi alterado com sucesso!"
+        } else {
+            return "Produto não encontrado"
         }
-        val produto = Produto(
-            id = produtoDTO.id,
-            nome = produtoDTO.nome,
-            unidadeDeMedida = produtoDTO.unidadeDeMedida,
-            precoUnitario = produtoDTO.precoUnitario,
-            categoria = categoria
-        )
-        produtoRepository.save(produto)
     }
     fun excluirProduto(id: Long) {
-        val produtoCadastrado = produtoRepository.findById(id).orElseThrow()
-        produtoRepository.deleteById(produtoCadastrado.id!!)
+       if (!produtoRepository.existsById(id)) {
+           throw NaoEncontradoException("Produto não encotrado")
+       }
+        produtoRepository.deleteById(id)
     }
 }

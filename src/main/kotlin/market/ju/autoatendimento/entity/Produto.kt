@@ -1,21 +1,18 @@
 package market.ju.autoatendimento.entity
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.ManyToOne
+import jakarta.persistence.*
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import java.math.BigDecimal
 
 
 @Entity
 data class Produto(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-    @NotBlank(message = "O nome do produto é obrigatório")
-    var nome: String,
-    var unidadeDeMedida: String,
-    var precoUnitario: Double,
-    @ManyToOne
-    val categoria: Categoria
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var id: Long? = null,
+    @Column(nullable = false) @NotNull(message = "O nome é obrigatório") var nome: String,
+    @Column(nullable = false) @NotNull(message = "A unidade de medida é obrigatória") var unidadeDeMedida: String,
+    @Column(nullable = false) @NotNull(message = "O preço unitário é obrigatório") var precoUnitario: Double,
+    @ManyToOne(fetch = FetchType.EAGER)// Referência entre as entidades
+    @JoinColumn(name = "categoria_id")// Identificação da foreign key
+    var categoria: Categoria
 )

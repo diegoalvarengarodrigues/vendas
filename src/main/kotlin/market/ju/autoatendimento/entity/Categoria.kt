@@ -1,14 +1,10 @@
 package market.ju.autoatendimento.entity
 
 import jakarta.persistence.*
-import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 
 @Entity
 data class Categoria(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-    @Column(nullable = false)
-    @NotBlank(message = "O nome da categoria é obrigatório")
-    var nome: String
-
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var id: Long? = null,
+    @Column(nullable = false) @NotNull(message = "O nome da Categoria é obrigatório") var nome: String,
 )

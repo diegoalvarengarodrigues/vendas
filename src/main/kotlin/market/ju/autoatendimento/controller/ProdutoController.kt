@@ -14,16 +14,9 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/produtos")
 class ProdutoController(private val produtoService: ProdutoService) {
 
-   /*
-    @PostMapping
-    fun criarProduto(@Valid @RequestBody produtoDTO: ProdutoDTO, categoriaId: Long): ResponseEntity<Produto>{
-        val novoProduto = produtoService.criarProduto(produtoDTO, categoriaId)
-        return ResponseEntity.status(HttpStatus.CREATED).body(novoProduto)
-    }*/
    @PostMapping
    fun criarProduto(@Valid @RequestBody produtoDTO: ProdutoDTO): ResponseEntity<String>{
        return try {
-           //val novoProduto: Produto = this.produtoService.criarProduto(produtoDTO.toEntity())
            val novoProduto = produtoService.criarProduto(produtoDTO.toEntity())
            val resposta: String = "Produto: '${novoProduto.nome}' criado com sucesso"
            ResponseEntity.status(HttpStatus.OK).body(resposta)

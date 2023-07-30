@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import market.ju.autoatendimento.enumeration.FormaDePagamento
-import java.math.BigDecimal
 
 @Entity
 data class Venda(

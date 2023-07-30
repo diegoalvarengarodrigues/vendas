@@ -2,9 +2,7 @@ package market.ju.autoatendimento.controller
 
 import jakarta.validation.Valid
 import market.ju.autoatendimento.dto.CategoriaDTO
-import market.ju.autoatendimento.dto.ProdutoDTO
 import market.ju.autoatendimento.entity.Categoria
-import market.ju.autoatendimento.repository.CategoriaRepository
 import market.ju.autoatendimento.service.CategoriaService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

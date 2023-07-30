@@ -2,8 +2,6 @@ package market.ju.autoatendimento.entity
 
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
-import java.math.BigDecimal
-
 
 @Entity
 data class Carrinho(
@@ -17,5 +15,5 @@ data class Carrinho(
     @Column(nullable = false) @NotNull(message = "O preço final não pode ser nulo")
     var precoFinal: Double?,
     @ManyToOne
-    var venda: Venda? = null,
+    var venda: Venda? = null
 )

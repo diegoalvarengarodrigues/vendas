@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PositiveOrZero
 import market.ju.autoatendimento.entity.Categoria
 import market.ju.autoatendimento.entity.Produto
-import java.math.BigDecimal
 
 data class ProdutoDTO(
     val id: Long,

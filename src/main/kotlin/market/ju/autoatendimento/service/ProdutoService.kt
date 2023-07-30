@@ -12,20 +12,6 @@ class ProdutoService (
     private val produtoRepository: ProdutoRepository,
     private val categoriaRepository: CategoriaRepository
 ){
-    /*
-    fun criarProduto(produtoDTO: ProdutoDTO, categoriaId: Long): Produto {
-        val categoria = categoriaRepository.findById(categoriaId).orElseThrow {
-            throw NaoEncontradoException("Categoria não encontrada")
-        }
-        val produto = Produto(
-            nome = produtoDTO.nome,
-            unidadeDeMedida = produtoDTO.unidadeDeMedida,
-            precoUnitario = produtoDTO.precoUnitario,
-            categoria = produtoDTO.categoria
-        )
-        return produtoRepository.save(produto)
-
-    }*/
     fun criarProduto(produto: Produto): Produto {
         val existe: Boolean = this.categoriaRepository.existsById(produto.categoria.id!!)
         if(existe) {
@@ -44,7 +30,6 @@ class ProdutoService (
     fun buscarProdutoPorId(id: Long): Produto {
 
         return produtoRepository.findById(id).orElseThrow {NaoEncontradoException("Produto com Id $id não encontrado")}
-
     }
     fun editarProduto(produto: Produto): String {
         val situacao: Int = this.produtoRepository.editarProduto(produto.id!!, produto.nome, produto.unidadeDeMedida, produto.precoUnitario, produto.categoria.id!!)

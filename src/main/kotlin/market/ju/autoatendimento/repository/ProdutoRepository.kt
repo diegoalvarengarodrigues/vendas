@@ -1,5 +1,6 @@
 package market.ju.autoatendimento.repository
 
+import jakarta.transaction.Transactional
 import market.ju.autoatendimento.entity.Produto
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
@@ -15,6 +16,7 @@ interface ProdutoRepository : JpaRepository<Produto, Long> {
     fun findByNome(nome: String): List<Produto>
 
     //Edita um produto
+    @Transactional
     @Modifying
     @Query(value = "UPDATE produto SET nome = :nome, unidade_de_medida = :unidadeDeMedida, " +
             "preco_unitario = precoUnitario, categoria_id = :categoria  WHERE id= :id", nativeQuery = true)

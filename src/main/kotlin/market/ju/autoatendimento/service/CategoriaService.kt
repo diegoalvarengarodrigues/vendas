@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service
 
 @Service
 class CategoriaService(private val categoriaRepository: CategoriaRepository) {
-
-
     fun adicionarCategoria(categoriaDTO: CategoriaDTO): Categoria {
         val novaCategoria = Categoria(nome = categoriaDTO.nome)
         return categoriaRepository.save(novaCategoria)

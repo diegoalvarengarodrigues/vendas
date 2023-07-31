@@ -15,7 +15,7 @@ class VendaService(
     //Finaliza a Venda
     fun finalizarVenda(vendaDTO: VendaDTO): Venda {
         val itens = carrinhoRepository.findAll()
-        val valorTotal = itens.sumOf { carrinho -> (carrinho.precoFinal ?: 0.0) * carrinho.quantidade }
+        val valorTotal = itens.sumOf { carrinho -> (carrinho.precoFinal ?: 0.0)  }
         val venda = Venda(valorTotal = valorTotal, formaDePagamento = vendaDTO.formaDePagamento, itens = itens)
         vendaRepository.save(venda)
         carrinhoRepository.deleteAll()

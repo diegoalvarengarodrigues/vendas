@@ -1,108 +1,134 @@
 package market.ju.autoatendimento.service
 
-import io.mockk.every
-import io.mockk.impl.annotations.MockK
-import io.mockk.junit5.MockKExtension
-import io.mockk.verify
 import market.ju.autoatendimento.entity.Categoria
 import market.ju.autoatendimento.entity.Produto
+import market.ju.autoatendimento.exceptions.NaoEncontradoException
+import market.ju.autoatendimento.repository.CategoriaRepository
 import market.ju.autoatendimento.repository.ProdutoRepository
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
-import org.springframework.test.context.ActiveProfiles
-import java.util.*
+import org.mockito.Mockito.*
 
-@ActiveProfiles("test")
-@ExtendWith(MockKExtension::class)
 class ProdutoServiceTest {
-    @MockK
-    lateinit var produtoRepository: ProdutoRepository
-    @MockK
-    lateinit var categoriaRepository: ProdutoRepository
-    @InjectMocks
-    lateinit var produtoService: ProdutoService
-
-    private lateinit var produtoFalso: Produto
-    private lateinit var categoriaFalsa: Categoria
-
+    private lateinit var produtoRepository: ProdutoRepository
+    private lateinit var categoriaRepository: CategoriaRepository
+    private lateinit var produtoService: ProdutoService
     @BeforeEach
     fun setUp() {
-        categoriaFalsa = Categoria(id = 1L, nome = "Bebidas")
-        produtoFalso = Produto(
-            id = 1L,
-            nome = "Suco de Uva",
-            unidadeDeMedida = "Unidade",
-            precoUnitario = 5.00,
-            categoria = categoriaFalsa
+        produtoRepository = mock(ProdutoRepository::class.java)
+        categoriaRepository = mock(CategoriaRepository::class.java)
+        produtoService = ProdutoService(produtoRepository, categoriaRepository)
+    }
+    @Test
+    fun criarProduto_DeveRetornarProduto_QuandoCategoriaExistir() {
+        val produto = Produto(1L, "Produto 1", "unidade", 10.0, Categoria(1L, "Categoria 1"))
+        `when`(categoriaRepository.existsById(produto.categoria.id!!)).thenReturn(true)
+        `when`(produtoRepository.save(produto)).thenReturn(produto)
+        val resultado = produtoService.criarProduto(produto)
+        assertEquals(produto, resultado)
+    }
+    @Test
+    fun criarProduto_DeveLancarExcecao_QuandoCategoriaNaoExistir() {
+        val produto = Produto(1L, "Produto 1", "unidade", 10.0, Categoria(1L, "Categoria 1"))
+        `when`(categoriaRepository.existsById(produto.categoria.id!!)).thenReturn(false)
+        assertThrows(NaoEncontradoException::class.java) {
+            produtoService.criarProduto(produto)
+        }
+    }
+    @Test
+    fun listarProdutos_DeveRetornarListaVazia_QuandoNaoExistiremProdutos() {
+        `when`(produtoRepository.findAll()).thenReturn(emptyList())
+        val resultado = produtoService.listarProdutos()
+        assertTrue(resultado.isEmpty())
+    }
+    @Test
+    fun listarProdutos_DeveRetornarListaDeProdutos_QuandoExistiremProdutos() {
+        val produtos = listOf(
+            Produto(1L, "Produto 1", "unidade", 10.0, Categoria(1L, "Categoria 1")),
+            Produto(2L, "Produto 2", "unidade", 20.0, Categoria(2L, "Categoria 2"))
         )
+        `when`(produtoRepository.findAll()).thenReturn(produtos)
+        val resultado = produtoService.listarProdutos()
+        assertEquals(produtos, resultado)
     }
-    //Teste para criar um novo produto
     @Test
-    fun `deve criar um novo produto`() {
-        every { categoriaRepository.findById(produtoFalso.categoria.id!!) } returns Optional.of(produtoFalso)
-        every { produtoRepository.save(any()) } returns produtoFalso
-
-        val produtoCriado = produtoService.criarProduto(produtoFalso)
-
-        assertNotNull(produtoCriado)
-        assertEquals(produtoCriado, produtoFalso)
+    fun buscarProdutoPorNome_DeveRetornarListaVazia_QuandoNenhumProdutoCorresponderAoNome() {
+        val nome = "Produto 1"
+        `when`(produtoRepository.findByNome(nome)).thenReturn(emptyList())
+        val resultado = produtoService.buscarProdutoPorNome(nome)
+        assertTrue(resultado.isEmpty())
     }
-
-    //Teste para listar todos os produtos
     @Test
-    fun `deve listar todos os produtos`() {
-        val produtosCadastrados = listOf(
-            Produto(id = 1L, nome = "Suco de Uva", unidadeDeMedida = "Unidade", precoUnitario = 5.00, categoria = categoriaFalsa),
-            Produto(id = 2L, nome = "Refrigerante de Cola", unidadeDeMedida = "Unidade", precoUnitario = 8.00, categoria = categoriaFalsa),
-            Produto(id = 3L, nome = "Cerveja Puro Malte", unidadeDeMedida = "Unidade", precoUnitario = 6.00, categoria = categoriaFalsa),
-            Produto(id = 4L, nome = "Agua sem gás", unidadeDeMedida = "Unidade", precoUnitario = 3.00, categoria = categoriaFalsa)
+    fun buscarProdutoPorNome_DeveRetornarListaDeProdutos_QuandoExistiremProdutosComNomeCorrespondente() {
+        val nome = "Produto 1"
+        val produtos = listOf(
+            Produto(1L, "Produto 1", "unidade", 10.0, Categoria(1L, "Categoria 1")),
+            Produto(2L, "Produto 1", "unidade", 20.0, Categoria(2L, "Categoria 2"))
         )
-        every { produtoRepository.findAll() } returns produtosCadastrados
-        val atual: List<Produto> = produtoService.listarProdutos()
-        assertEquals(produtosCadastrados.size, atual.size)
-        assertTrue(atual.containsAll(produtosCadastrados))
+        `when`(produtoRepository.findByNome(nome)).thenReturn(produtos)
+        val resultado = produtoService.buscarProdutoPorNome(nome)
+        assertEquals(produtos, resultado)
     }
-
-    //Teste para buscar produto pelo ID
     @Test
-    fun `deve buscar produto por id`() {
-        every { produtoRepository.findById(1L) } returns Optional.of(produtoFalso)
-        val atual: Produto = produtoService.buscarProdutoPorId(1L)
-        assertNotNull(atual)
-        assertEquals(atual, produtoFalso)
+    fun buscarProdutoPorId_DeveRetornarProduto_QuandoProdutoExistir() {
+        val id = 1L
+        val produto = Produto(1L, "Produto 1", "unidade", 10.0, Categoria(1L, "Categoria 1"))
+        `when`(produtoRepository.findById(id)).thenReturn(java.util.Optional.of(produto))
+        val resultado = produtoService.buscarProdutoPorId(id)
+        assertEquals(produto, resultado)
     }
-
-    //Teste para editar um produto
     @Test
-    fun `deve editar um produto`() {
-        val produtoEditado = produtoFalso.copy()
-        every { produtoRepository.editarProduto(
-            produtoEditado.id!!,
-            produtoEditado.nome,
-            produtoEditado.unidadeDeMedida,
-            produtoEditado.precoUnitario,
-            produtoEditado.categoria.id!!
-        ) } returns 1
-        val atual: String = produtoService.editarProduto(produtoEditado)
-        val mensagem = "O produto de ID: ${produtoEditado.id} foi alterado com sucesso!"
-        assertEquals(atual, mensagem)
-
+    fun buscarProdutoPorId_DeveLancarExcecao_QuandoProdutoNaoExistir() {
+        val id = 1L
+        `when`(produtoRepository.findById(id)).thenReturn(java.util.Optional.empty())
+        assertThrows(NaoEncontradoException::class.java) {
+            produtoService.buscarProdutoPorId(id)
+        }
     }
-
-    //Teste para excluir um produto
     @Test
-    fun `deve excluir um produto`() {
-        every { produtoRepository.existsById(produtoFalso.id!!) } returns true
-        every { produtoRepository.deleteById(produtoFalso.id!!) } returns Unit
-        produtoService.excluirProduto(produtoFalso.id!!)
-
-        verify { produtoRepository.deleteById(produtoFalso.id!!) }
+    fun editarProduto_DeveRetornarMensagemDeSucesso_QuandoProdutoForEditado() {
+        val produto = Produto(1L, "Produto 1", "unidade", 10.0, Categoria(1L, "Categoria 1"))
+        `when`(
+            produtoRepository.editarProduto(
+                produto.id!!,
+                produto.nome,
+                produto.unidadeDeMedida,
+                produto.precoUnitario,
+                produto.categoria.id!!
+            )
+        ).thenReturn(1)
+        val resultado = produtoService.editarProduto(produto)
+        assertEquals("O produto de ID: ${produto.id} foi alterado com sucesso!", resultado)
     }
-
-
+    @Test
+    fun editarProduto_DeveRetornarMensagemDeErro_QuandoProdutoNaoForEncontrado() {
+        val produto = Produto(1L, "Produto 1", "unidade", 10.0, Categoria(1L, "Categoria 1"))
+        `when`(
+            produtoRepository.editarProduto(
+                produto.id!!,
+                produto.nome,
+                produto.unidadeDeMedida,
+                produto.precoUnitario,
+                produto.categoria.id!!
+            )
+        ).thenReturn(0)
+        val resultado = produtoService.editarProduto(produto)
+        assertEquals("Produto não encontrado", resultado)
+    }
+    @Test
+    fun excluirProduto_DeveLancarExcecao_QuandoProdutoNaoExistir() {
+        val id = 1L
+        `when`(produtoRepository.existsById(id)).thenReturn(false)
+        assertThrows(NaoEncontradoException::class.java) {
+            produtoService.excluirProduto(id)
+        }
+    }
+    @Test
+    fun excluirProduto_DeveChamarMetodoDeleteById_QuandoProdutoExistir() {
+        val id = 1L
+        `when`(produtoRepository.existsById(id)).thenReturn(true)
+        produtoService.excluirProduto(id)
+        verify(produtoRepository).deleteById(id)
+    }
 }
